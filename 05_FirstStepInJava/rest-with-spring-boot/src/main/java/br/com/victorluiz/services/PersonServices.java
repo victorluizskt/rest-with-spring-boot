@@ -1,50 +1,46 @@
 package br.com.victorluiz.services;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import br.com.victorluiz.exceptions.ResourceNotFoundException;
 import br.com.victorluiz.model.Person;
+import br.com.victorluiz.repositories.PersonRepository;
 
 @Service
 public class PersonServices {
-	
-	private final AtomicLong counter = new AtomicLong();
+
 	private Logger logger = Logger.getLogger(PersonServices.class.getName());
 	
-	public Person findById(String id) {
-		logger.info("Finding one person!");
-		return mockPerson(1);
+	@Autowired
+	PersonRepository repository;
+	
+	public Person findById(Long id) {
+		return repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("No records found for this ID!"));
 	}
 	
 	public List<Person> findAll() {
-		logger.info("Finding all people!");
-		List<Person> persons = new ArrayList<>();
-		for(int i = 0; i < 8; i++) {
-			persons.add(mockPerson(i));
-		}
-		
-		return persons;
+		return repository.findAll();
 	}
 	
 	public Person create(Person person) {
 		logger.info("create one person!");
-		return person;
+		return repository.save(person);
 	}
 	
 	public Person update(Person person) {
 		logger.info("create one person!");
-		return person;
+		var entity = repository.findById(person.getId()).orElseThrow(() -> new ResourceNotFoundException("No records found for this ID!"));
+		var newPerson = new Person(entity);
+		return repository.save(newPerson);
 	}
 	
-	public void delete(String id) {
+	public void delete(Long id) {
 		logger.info("Deleting one person!");
-	}
-	
-	private Person mockPerson(int i) {
-		return new Person(counter.incrementAndGet(), "Victor", "Luiz", "Avenida Amazonas", "Male");
+		var entity = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("No records found for this ID!"));
+		repository.delete(entity);
 	}
 }
