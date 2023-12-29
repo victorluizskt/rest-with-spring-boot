@@ -7,8 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import br.com.victorluiz.data.vo.v1.PersonVO;
+import br.com.victorluiz.data.vo.v2.PersonVO2;
 import br.com.victorluiz.exceptions.ResourceNotFoundException;
 import br.com.victorluiz.mapper.DozerMapper;
+import br.com.victorluiz.mapper.custom.PersonMapper;
 import br.com.victorluiz.model.Person;
 import br.com.victorluiz.repositories.PersonRepository;
 
@@ -19,6 +21,9 @@ public class PersonServices {
 	
 	@Autowired
 	PersonRepository repository;
+	
+	@Autowired
+	PersonMapper mapper;
 	
 	public PersonVO findById(Long id) {
 		var entity = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("No records found for this ID!"));
@@ -33,6 +38,12 @@ public class PersonServices {
 		logger.info("create one person!");
 		var entity = DozerMapper.parseObject(person, Person.class);
 		return DozerMapper.parseObject(repository.save(entity), PersonVO.class);
+	}
+	
+	public PersonVO2 createV2(PersonVO2 person) {
+		logger.info("create one person!");
+		var entity = mapper.convertVoToEntity(person);
+		return mapper.convertEntityToVo(repository.save(entity));
 	}
 	
 	public PersonVO update(PersonVO person) {
